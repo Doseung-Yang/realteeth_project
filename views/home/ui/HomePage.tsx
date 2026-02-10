@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FaMapMarkerAlt, FaHeart } from "react-icons/fa";
 import { getCurrentLocation } from "@/shared/lib/geolocation";
@@ -10,8 +11,10 @@ import { useFavoriteStore } from "@/entities/favorite/model/store";
 import { FavoriteCard } from "@/views/home/ui/FavoriteCard";
 import { LocationSearch } from "@/features/location-search/ui/LocationSearch";
 import { Location } from "@/entities/location/model/types";
+import { MESSAGES } from "@/shared/config/messages";
 import { Button } from "@/shared/ui/Button";
 import { Loading } from "@/shared/ui/Loading";
+import { PageLayout } from "@/shared/ui/PageLayout";
 
 export const HomePage: React.FC = () => {
   const router = useRouter();
@@ -23,7 +26,7 @@ export const HomePage: React.FC = () => {
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
 
   const { favorites, loadFavorites } = useFavoriteStore();
-  const { data: currentWeather, isLoading: isLoadingWeather } = useWeatherQuery(
+  const { data: currentWeather, isLoading: isLoadingWeather, refetch: refetchWeather } = useWeatherQuery(
     currentCoords?.lat || 0,
     currentCoords?.lon || 0
   );
@@ -43,20 +46,18 @@ export const HomePage: React.FC = () => {
       .finally(() => {
         setIsLoadingLocation(false);
       });
-  }, [loadFavorites]);
+  }, []);
 
-  const handleSelectLocation = (location: Location) => {
-    router.push(`/search?location=${encodeURIComponent(location.id)}`);
-  };
-
-  const handleFavoriteClick = (locationId: string) => {
-    router.push(`/detail/${encodeURIComponent(locationId)}`);
-  };
+  const handleSelectLocation = useCallback(
+    (location: Location) => {
+      router.push(`/search?location=${encodeURIComponent(location.id)}`);
+    },
+    [router]
+  );
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-7xl">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6 sm:mb-8">
+    <PageLayout maxWidth="7xl">
+      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6 sm:mb-8">
           우리 동네 날씨 보기
         </h1>
 
@@ -93,9 +94,10 @@ export const HomePage: React.FC = () => {
               isLoading={isLoadingWeather}
               error={
                 !isLoadingWeather && !currentWeather
-                  ? "날씨 정보를 가져올 수 없습니다"
+                  ? MESSAGES.WEATHER_FETCH_FAILED
                   : undefined
               }
+              onRetry={refetchWeather}
             />
           ) : null}
         </section>
@@ -118,26 +120,21 @@ export const HomePage: React.FC = () => {
               <p className="text-gray-500 dark:text-gray-400 mb-4">
                 즐겨찾기가 없습니다
               </p>
-              <Button
-                variant="primary"
-                onClick={() => router.push("/search")}
+              <Link
+                href="/search"
+                className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
               >
                 장소 검색하기
-              </Button>
+              </Link>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {favorites.map((favorite) => (
-                <FavoriteCard
-                  key={favorite.id}
-                  favorite={favorite}
-                  onClick={() => handleFavoriteClick(favorite.id)}
-                />
+                <FavoriteCard key={favorite.id} favorite={favorite} />
               ))}
             </div>
           )}
         </section>
-      </div>
-    </div>
+    </PageLayout>
   );
 };
