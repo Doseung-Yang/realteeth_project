@@ -3,8 +3,8 @@ import "./globals.css";
 import { QueryProvider } from "@/app/providers/QueryProvider";
 
 export const metadata: Metadata = {
-  title: "날씨 앱",
-  description: "한국 지역 날씨 정보 조회 앱",
+  title: "오늘날씨",
+  description: "지역 날씨 정보 조회 앱",
 };
 
 export default function RootLayout({
