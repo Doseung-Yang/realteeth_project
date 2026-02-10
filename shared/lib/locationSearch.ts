@@ -1,26 +1,32 @@
-import districtsData from "./data/korea_districts.json";
 import { Location } from "@/entities/location/model/types";
 import { enrichLocationWithCoordinates } from "./locationCoordinates";
 import { SearchEnum } from "./searchEnum";
 
-const districts: string[] = districtsData as string[];
+let searchIndex: Map<string, Location[]> | null = null;
+let districtsCache: string[] | null = null;
+
+
+export function districtToLocation(district: string): Location {
+  const parts = district.split("-");
+  const baseLocation = {
+    id: district,
+    name: parts[parts.length - 1],
+    fullPath: district,
+    level: (parts.length === 1 ? "시" : parts.length === 2 ? "구" : "동") as "시" | "구" | "동",
+  };
+  const enriched = enrichLocationWithCoordinates(baseLocation);
+  return {
+    ...enriched,
+    level: baseLocation.level,
+  };
+}
 
 const createSearchIndex = (districts: string[]): Map<string, Location[]> => {
   const index = new Map<string, Location[]>();
 
   districts.forEach((district) => {
+    const location = districtToLocation(district);
     const parts = district.split("-");
-    const baseLocation = {
-      id: district,
-      name: parts[parts.length - 1],
-      fullPath: district,
-      level: (parts.length === 1 ? "시" : parts.length === 2 ? "구" : "동") as "시" | "구" | "동",
-    };
-    const enriched = enrichLocationWithCoordinates(baseLocation);
-    const location: Location = {
-      ...enriched,
-      level: baseLocation.level,
-    };
 
     parts.forEach((part) => {
       const key = part.toLowerCase();
@@ -40,22 +46,31 @@ const createSearchIndex = (districts: string[]): Map<string, Location[]> => {
   return index;
 };
 
-const searchIndex = createSearchIndex(districts);
+async function loadSearchIndex(): Promise<void> {
+  if (searchIndex !== null) return;
+  const mod = await import("./data/korea_districts.json");
+  const districts = mod.default as string[];
+  districtsCache = districts;
+  searchIndex = createSearchIndex(districts);
+}
+
+export async function ensureSearchIndex(): Promise<void> {
+  return loadSearchIndex();
+}
 
 export function searchLocations(
   query: string,
   limit: number = SearchEnum.RESULT_LIMIT
 ): Location[] {
+  if (searchIndex === null) return [];
   if (!query.trim()) {
     return [];
   }
 
   const normalizedQuery = query.toLowerCase().trim();
-  
   if (normalizedQuery.length < SearchEnum.MIN_LENGTH) {
     return [];
   }
-  
   const results: Location[] = [];
   const seen = new Set<string>();
 
@@ -83,22 +98,14 @@ export function searchLocations(
   return results.slice(0, limit);
 }
 
-export function getLocationById(id: string): Location | null {
-  const location = districts.find((d) => d === id);
-  if (!location) return null;
+export async function getLocationById(id: string): Promise<Location | null> {
+  await loadSearchIndex();
+  if (!districtsCache) return null;
 
-  const parts = location.split("-");
-  const baseLocation = {
-    id: location,
-    name: parts[parts.length - 1],
-    fullPath: location,
-    level: (parts.length === 1 ? "시" : parts.length === 2 ? "구" : "동") as "시" | "구" | "동",
-  };
-  const enriched = enrichLocationWithCoordinates(baseLocation);
-  return {
-    ...enriched,
-    level: baseLocation.level,
-  } as Location;
+  const district = districtsCache.find((d) => d === id);
+  if (!district) return null;
+
+  return districtToLocation(district);
 }
 
 export function formatLocationName(location: Location): string {
