@@ -76,7 +76,7 @@ export const FavoriteCard: React.FC<FavoriteCardProps> = ({
         />
       </div>
       {favorite.alias && (
-        <div className="absolute top-2 left-2">
+        <div className="absolute bottom-2 left-8 transform -translate-x-1/2">
           <span className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs px-2 py-1 rounded">
             {favorite.alias}
           </span>
