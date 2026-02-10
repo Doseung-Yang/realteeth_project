@@ -1,4 +1,5 @@
 import axios from "axios";
+import type { WeatherData, WeatherApiError } from "@/entities/weather/model/types";
 import {
   WeatherApiEnum,
   WeatherCacheEnum,
@@ -9,35 +10,6 @@ import {
   WeatherGridEnum,
   WeatherGridEnumValues,
 } from "./weatherEnum";
-
-export interface WeatherData {
-  location: {
-    name: string;
-    coordinates: {
-      lat: number;
-      lon: number;
-    };
-  };
-  current: {
-    temp: number;
-    description: string;
-    humidity: number;
-    windSpeed: number;
-  };
-  daily: {
-    min: number;
-    max: number;
-  };
-  hourly: Array<{
-    time: string;
-    temp: number;
-  }>;
-}
-
-export interface WeatherApiError {
-  message: string;
-  code?: string;
-}
 
 class WeatherApiClient {
   private baseUrl: string;
@@ -213,6 +185,8 @@ class WeatherApiClient {
     const maxTemp = this.findItem(items, "TMX", "1");
     const sky = this.findItem(items, "SKY", "1");
     const pty = this.findItem(items, "PTY", "1");
+    const humidity = this.findItem(items, "REH", "1");
+    const windSpeed = this.findItem(items, "WSD", "1");
 
     const hourly: Array<{ time: string; temp: number }> = [];
     for (let i = 1; i <= WeatherTimeEnum.HOURS_PER_DAY; i++) {
@@ -233,8 +207,8 @@ class WeatherApiClient {
       current: {
         temp: currentTemp ? parseFloat(currentTemp) : 0,
         description: this.getWeatherDescription(sky, pty),
-        humidity: 0,
-        windSpeed: 0,
+        humidity: humidity ? parseFloat(humidity) : 0,
+        windSpeed: windSpeed ? parseFloat(windSpeed) : 0,
       },
       daily: {
         min: minTemp ? parseFloat(minTemp) : 0,
