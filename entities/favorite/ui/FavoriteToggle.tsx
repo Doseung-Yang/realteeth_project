@@ -1,9 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useCallback } from "react";
 import { FaStar, FaRegStar } from "react-icons/fa";
 import { Button } from "@/shared/ui/Button";
-import { useFavoriteStore } from "../model/store";
+import { useFavoriteStore } from "@/entities/favorite/model/store";
 import { Location } from "@/entities/location/model/types";
 
 interface FavoriteToggleProps {
@@ -21,7 +21,7 @@ export const FavoriteToggle: React.FC<FavoriteToggleProps> = ({
   const isFav = isFavorite(location.id);
   const isMaxReached = favorites.length >= maxFavorites && !isFav;
 
-  const handleToggle = () => {
+  const handleToggle = useCallback(() => {
     if (isFav) {
       removeFavorite(location.id);
     } else {
@@ -29,7 +29,7 @@ export const FavoriteToggle: React.FC<FavoriteToggleProps> = ({
         addFavorite(location);
       }
     }
-  };
+  }, [isFav, favorites.length, maxFavorites, location.id, removeFavorite, addFavorite]);
 
   return (
     <Button
@@ -45,6 +45,9 @@ export const FavoriteToggle: React.FC<FavoriteToggleProps> = ({
           ? "즐겨찾기에서 제거"
           : "즐겨찾기에 추가"
       }
+      className={`transition-all duration-200 ${
+        isFav ? "hover:scale-110" : "hover:scale-105"
+      }`}
     />
   );
 };
