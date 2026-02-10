@@ -18,10 +18,8 @@ describe("location-coordinates", () => {
     });
 
     it("부분 매칭으로 상위 레벨 좌표를 반환해야 함", () => {
-      // "서울특별시-종로구-청운동"이 없으면 "서울특별시-종로구"를, 그것도 없으면 "서울특별시"를 반환
       const coords = getLocationCoordinates("서울특별시-종로구-청운동");
       expect(coords).not.toBeNull();
-      // 실제로는 "서울특별시-종로구-청운동"이 정의되어 있으므로 해당 좌표를 반환
       expect(coords?.lat).toBe(37.5892);
       expect(coords?.lon).toBe(126.9706);
     });

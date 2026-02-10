@@ -6,7 +6,6 @@ import {
 
 describe("storage", () => {
   beforeEach(() => {
-    // 각 테스트 전에 localStorage 초기화 (jest.setup.js에서 모킹됨)
     jest.clearAllMocks();
   });
 
@@ -82,28 +81,23 @@ describe("storage", () => {
   describe("통합 테스트", () => {
     it("저장하고 로드하는 전체 흐름이 작동해야 함", () => {
       const testData = { name: "test", items: [1, 2, 3] };
-      
-      // 저장
+
       const saveResult = saveToStorage("integration-test", testData);
       expect(saveResult).toBe(true);
 
-      // 실제 localStorage에 저장된 것처럼 모킹
       (localStorage.getItem as jest.Mock).mockReturnValue(
         JSON.stringify(testData)
       );
 
-      // 로드
       const loaded = loadFromStorage<typeof testData>("integration-test");
       expect(loaded).toEqual(testData);
     });
 
     it("저장하고 삭제하는 전체 흐름이 작동해야 함", () => {
       const testData = { name: "test" };
-      
-      // 저장
+
       saveToStorage("delete-test", testData);
-      
-      // 삭제
+
       const deleteResult = removeFromStorage("delete-test");
       expect(deleteResult).toBe(true);
       expect(localStorage.removeItem).toHaveBeenCalledWith("delete-test:v1");

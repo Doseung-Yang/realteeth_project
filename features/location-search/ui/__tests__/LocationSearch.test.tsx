@@ -4,8 +4,8 @@ import userEvent from "@testing-library/user-event";
 import { LocationSearch } from "../LocationSearch";
 import { Location } from "@/entities/location/model/types";
 
-// location-search 모듈 모킹
 jest.mock("@/shared/lib/locationSearch", () => ({
+  ensureSearchIndex: jest.fn(() => Promise.resolve()),
   searchLocations: jest.fn((query: string) => {
     if (query === "서울") {
       return [
@@ -145,7 +145,6 @@ describe("LocationSearch", () => {
       expect(screen.getByText("서울특별시")).toBeInTheDocument();
     });
 
-    // 외부 클릭 (overlay 클릭)
     const overlay = document.querySelector(".fixed.inset-0");
     if (overlay) {
       await user.click(overlay);

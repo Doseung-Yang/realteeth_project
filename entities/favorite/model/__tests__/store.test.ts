@@ -4,7 +4,6 @@ import { Location } from "@/entities/location/model/types";
 import * as storage from "@/shared/lib/storage";
 import { FavoriteEnum } from "../favoriteEnum";
 
-// storage 모듈 모킹
 jest.mock("@/shared/lib/storage", () => ({
   saveToStorage: jest.fn(() => true),
   loadFromStorage: jest.fn(() => null),
@@ -13,7 +12,6 @@ jest.mock("@/shared/lib/storage", () => ({
 
 describe("useFavoriteStore", () => {
   beforeEach(() => {
-    // 각 테스트 전에 스토어 초기화
     useFavoriteStore.setState({
       favorites: [],
       maxFavorites: FavoriteEnum.MAX_FAVORITES,
@@ -42,14 +40,12 @@ describe("useFavoriteStore", () => {
     });
 
     it("최대 6개까지만 추가할 수 있어야 함", () => {
-      // 6개 추가
       for (let i = 1; i <= 6; i++) {
         useFavoriteStore.getState().addFavorite(createMockLocation(`location-${i}`));
       }
 
       expect(useFavoriteStore.getState().favorites.length).toBe(6);
 
-      // 7번째 추가 시도
       const result = useFavoriteStore.getState().addFavorite(createMockLocation("location-7"));
       expect(result).toBe(false);
       expect(useFavoriteStore.getState().favorites.length).toBe(6);
@@ -202,16 +198,13 @@ describe("useFavoriteStore", () => {
       const location1 = createMockLocation("location-1");
       const location2 = createMockLocation("location-2");
 
-      // 추가
       useFavoriteStore.getState().addFavorite(location1);
       useFavoriteStore.getState().addFavorite(location2);
       expect(useFavoriteStore.getState().favorites.length).toBe(2);
 
-      // 별칭 수정
       useFavoriteStore.getState().updateFavoriteAlias("location-1", "첫 번째 장소");
       expect(useFavoriteStore.getState().favorites[0].alias).toBe("첫 번째 장소");
 
-      // 제거
       useFavoriteStore.getState().removeFavorite("location-1");
       const state = useFavoriteStore.getState();
       expect(state.favorites.length).toBe(1);

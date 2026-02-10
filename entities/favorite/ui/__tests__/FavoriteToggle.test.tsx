@@ -6,7 +6,6 @@ import { useFavoriteStore } from "../../model/store";
 import { Location } from "@/entities/location/model/types";
 import { FavoriteEnum } from "../../model/favoriteEnum";
 
-// store 모킹
 jest.mock("../../model/store", () => ({
   useFavoriteStore: jest.fn(),
 }));

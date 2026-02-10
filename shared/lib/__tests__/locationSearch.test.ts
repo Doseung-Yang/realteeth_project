@@ -1,4 +1,5 @@
 import {
+  ensureSearchIndex,
   searchLocations,
   getLocationById,
   formatLocationName,
@@ -6,6 +7,10 @@ import {
 import { Location } from "@/entities/location/model/types";
 
 describe("location-search", () => {
+  beforeAll(async () => {
+    await ensureSearchIndex();
+  });
+
   describe("searchLocations", () => {
     it("서울특별시 검색 시 결과를 반환해야 함", () => {
       const results = searchLocations("서울특별시");
@@ -51,9 +56,7 @@ describe("location-search", () => {
 
     it("대소문자 구분 없이 검색해야 함", () => {
       const results1 = searchLocations("서울");
-      const results2 = searchLocations("SEOUL");
       expect(results1.length).toBeGreaterThan(0);
-      // 한글 검색이므로 대소문자 구분은 없지만, 영문 검색은 결과가 없을 수 있음
     });
 
     it("limit 파라미터로 결과 수를 제한할 수 있어야 함", () => {
@@ -63,20 +66,20 @@ describe("location-search", () => {
   });
 
   describe("getLocationById", () => {
-    it("존재하는 ID로 위치를 조회할 수 있어야 함", () => {
-      const location = getLocationById("서울특별시");
+    it("존재하는 ID로 위치를 조회할 수 있어야 함", async () => {
+      const location = await getLocationById("서울특별시");
       expect(location).not.toBeNull();
       expect(location?.id).toBe("서울특별시");
       expect(location?.name).toBe("서울특별시");
     });
 
-    it("존재하지 않는 ID로 조회 시 null을 반환해야 함", () => {
-      const location = getLocationById("존재하지않는ID12345");
+    it("존재하지 않는 ID로 조회 시 null을 반환해야 함", async () => {
+      const location = await getLocationById("존재하지않는ID12345");
       expect(location).toBeNull();
     });
 
-    it("조회한 위치는 올바른 구조를 가져야 함", () => {
-      const location = getLocationById("서울특별시-종로구");
+    it("조회한 위치는 올바른 구조를 가져야 함", async () => {
+      const location = await getLocationById("서울특별시-종로구");
       expect(location).not.toBeNull();
       expect(location).toHaveProperty("id");
       expect(location).toHaveProperty("name");
